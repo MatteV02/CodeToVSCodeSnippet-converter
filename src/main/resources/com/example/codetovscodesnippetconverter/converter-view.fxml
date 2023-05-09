@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -12,7 +13,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="200.0" minWidth="300.0" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.codetovscodesnippetconverter.ConverterController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="200.0" minWidth="300.0" prefHeight="511.0" prefWidth="786.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.codetovscodesnippetconverter.ConverterController">
    <center>
       <SplitPane dividerPositions="0.5" prefHeight="160.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <items>
@@ -54,7 +55,7 @@
             <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
          </rowConstraints>
          <children>
-            <HBox alignment="CENTER" GridPane.columnIndex="1">
+            <HBox alignment="CENTER" prefWidth="0.0" GridPane.columnIndex="1">
                <children>
                   <Button mnemonicParsing="false" onAction="#onConvertButtonClicked" text="Convert!" />
                </children>
@@ -67,6 +68,24 @@
                   <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                </GridPane.margin>
             </HBox>
+            <GridPane>
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="115.79998626708985" minWidth="10.0" prefWidth="82.19998016357422" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="186.20001983642575" minWidth="10.0" prefWidth="186.20001983642575" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+               <children>
+                  <Label text="Spaces to tab:" />
+                  <TextField fx:id="tabSizeTextField" text="4" GridPane.columnIndex="1" />
+                  <Button mnemonicParsing="false" onAction="#onRemoveIndentationButtonClicked" prefHeight="26.0" prefWidth="197.0" text="Remove indentation level" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+               </children>
+               <GridPane.margin>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </GridPane.margin>
+            </GridPane>
          </children>
       </GridPane>
    </bottom>

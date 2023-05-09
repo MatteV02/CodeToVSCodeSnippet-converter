@@ -2,7 +2,9 @@ package com.example.codetovscodesnippetconverter;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 
 import java.util.*;
@@ -26,15 +28,42 @@ public class ConverterController {
     private TextArea snippetTextArea;
 
     @FXML
+    private TextField tabSizeTextField;
+
+    @FXML
     void onConvertButtonClicked(ActionEvent ignoredEvent) {
         String codeText = codeTextArea.getText();
-        StringBuilder snippetText = new StringBuilder();
-        snippetText.append("\"");
-        for (char c : codeText.toCharArray()) {
-            snippetText.append(specialCharacterMap.getOrDefault(c, Character.toString(c)));
+
+        try {
+            codeText = spacesToTab(codeText, getTabSize());
+
+            StringBuilder snippetText = new StringBuilder();
+            snippetText.append("\"");
+            for (char c : codeText.toCharArray()) {
+                snippetText.append(specialCharacterMap.getOrDefault(c, Character.toString(c)));
+            }
+            snippetText.append("\",\n");
+            snippetTextArea.setText(snippetText.toString());
+        } catch (NumberFormatException e) {
+            new Alert(Alert.AlertType.ERROR, "Spaces to tab value is not a valid number").showAndWait();
         }
-        snippetText.append("\",\n");
-        snippetTextArea.setText(snippetText.toString());
+    }
+
+    String spacesToTab(String inputCodeText, int spacesNumber) {
+        return inputCodeText.replaceAll(" {" + spacesNumber + "}", "\t");
+    }
+
+    /**
+     *
+     * @return
+     * @throws NumberFormatException
+     */
+    int getTabSize() throws NumberFormatException {
+        int returnValue = Integer.parseInt(tabSizeTextField.getText());
+        if (returnValue <= 0) {
+            throw new NumberFormatException("The number in tabSizeTextField is less or equal to 0");
+        }
+        return returnValue;
     }
 
     int getVariableNumber() {
@@ -95,5 +124,25 @@ public class ConverterController {
         } else {
             snippetTextArea.nextWord();
         }
+    }
+
+    @FXML
+    void onRemoveIndentationButtonClicked(ActionEvent ignoredEvent) {
+        String codeTextAreaContent = codeTextArea.getText();
+        StringBuilder removedIndentationContent = new StringBuilder();
+
+        for (String s : codeTextAreaContent.split("\n")) {
+            String regex;
+            if (s.startsWith(" ")) {
+                regex = " {" + getTabSize() + "}";
+            } else if (s.startsWith("\t")) {
+                regex = "\t";
+            } else {
+                continue;
+            }
+            removedIndentationContent.append(s.replaceFirst(regex, "")).append("\n");
+        }
+
+        codeTextArea.setText(removedIndentationContent.toString().trim());
     }
 }
