@@ -7,7 +7,8 @@ This is a JavaFX application for writing snippets of code in a more efficient wa
 *In italics the functionalities that will be implemented*
 
 1. Code translation to snippet (and _vice-versa_)
-2. _Easy variable insertion_
+2. Easy variable insertion
+3. Remove indentation level
 
 ## Contributors
 - [MatteV02](https://github.com/MatteV02)
