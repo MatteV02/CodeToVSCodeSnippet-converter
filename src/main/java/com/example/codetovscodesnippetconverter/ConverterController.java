@@ -1,8 +1,10 @@
 package com.example.codetovscodesnippetconverter;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
@@ -13,12 +15,13 @@ public class ConverterController {
 
     int variableNumber = 0;
 
-    boolean variableInsertion = false;
+    SimpleBooleanProperty variableInsertion = new SimpleBooleanProperty();
 
     final Map<Character, String> specialCharacterMap = Map.of(
             '\t', "\\t",
             '\"', "\\\"",
-            '\n', "\",\n\""
+            '\n', "\",\n\"",
+            '\\', "\\\\"
     );
 
     @FXML
@@ -29,6 +32,22 @@ public class ConverterController {
 
     @FXML
     private TextField tabSizeTextField;
+
+    @FXML
+    private Label variableModeLabel;
+
+    @FXML
+    public void initialize() {
+        variableInsertion.set(false);
+
+        variableInsertion.addListener(((observable, oldValue, newValue) -> {
+            if (newValue) {
+                variableModeLabel.setText("ON (ESC to exit)");
+            } else {
+                variableModeLabel.setText("OFF");
+            }
+        }));
+    }
 
     @FXML
     void onConvertButtonClicked(ActionEvent ignoredEvent) {
@@ -74,7 +93,7 @@ public class ConverterController {
     void onAddVariableButtonClicked(ActionEvent ignoredEvent) {
         int caretPosition = snippetTextArea.getCaretPosition();
 
-        snippetTextArea.insertText(caretPosition, "${" + getVariableNumber() + " : text}");
+        snippetTextArea.insertText(caretPosition, "${" + getVariableNumber() + ":text}");
 
         changeCaretOnNextPosition(caretPosition);
 
@@ -85,44 +104,62 @@ public class ConverterController {
     void onKeyReleased_snippet(KeyEvent event) {
         switch(event.getCode()) {
             case TAB -> {
-                if (variableInsertion) {
+                if (variableInsertion.get()) {
                     snippetTextArea.undo();
                     changeCaretOnNextPosition(snippetTextArea.getCaretPosition());
                 }
             }
-            case ESCAPE -> variableInsertion = false;
+            case ESCAPE -> variableInsertion.set(false);
+            case BACK_SLASH -> {
+                if (event.isShiftDown() && variableInsertion.get()) {
+                    // TODO this is unsafe: whenever variableInsertion is true and | is pressed, a | is typed before
+                    //  } even if the first | is not in a correct position
+                    int startCaretPosition = snippetTextArea.getCaretPosition();
+
+                    String textAreaContent = snippetTextArea.getText();
+
+                    snippetTextArea.insertText(textAreaContent.indexOf("}", startCaretPosition), "|");
+
+                    snippetTextArea.positionCaret(startCaretPosition);
+                }
+            }
         }
     }
 
     void changeCaretOnNextPosition(int startCaretPosition) {
+        final int INDEX_NOT_FOUND = -1;
+
         String textAreaContent = snippetTextArea.getText();
-        Deque<Integer> stopIndex = new ArrayDeque<>(List.of(
-                textAreaContent.indexOf(Integer.toString(variableNumber), startCaretPosition),
-                textAreaContent.indexOf(":", startCaretPosition),
-                textAreaContent.indexOf("text", startCaretPosition),
-                textAreaContent.indexOf("}", startCaretPosition)
-        ));
+
+        Deque<String> stopStrings = new ArrayDeque<>(List.of(Integer.toString(variableNumber), ":", "text", "}"));
+        Deque<Integer> stopIndex = new ArrayDeque<>();
+
+        for (String s : stopStrings) {
+            stopIndex.add(textAreaContent.indexOf(s, startCaretPosition));
+        }
 
         int newCaretPosition;
+        String selectedWord;
 
         try {
-            newCaretPosition = stopIndex.removeFirst();
-
-            while (newCaretPosition == -1) {
+            do {
                 newCaretPosition = stopIndex.removeFirst();
-            }
+                selectedWord = stopStrings.removeFirst();
+            } while (newCaretPosition == INDEX_NOT_FOUND);
         } catch (NoSuchElementException e) {
             throw new RuntimeException("Error while changing caret position");
         }
 
-        variableInsertion = stopIndex.size() != 0;
+        variableInsertion.set(stopIndex.size() != 0);
 
         snippetTextArea.positionCaret(newCaretPosition);
 
-        if (variableInsertion) {
-            snippetTextArea.selectEndOfNextWord();
+        int finalCaretPosition = newCaretPosition + selectedWord.length();
+
+        if (variableInsertion.get()) {
+            snippetTextArea.selectPositionCaret(finalCaretPosition);
         } else {
-            snippetTextArea.nextWord();
+            snippetTextArea.positionCaret(finalCaretPosition);
         }
     }
 
